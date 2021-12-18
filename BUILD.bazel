@@ -1,0 +1,52 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@bazel_gazelle//:def.bzl", "gazelle")
+
+# gazelle:prefix github.com/uhthomas/rules_go-issue
+gazelle(name = "gazelle")
+
+platform(
+    name = "linux_x86_64",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+)
+
+platform(
+    name = "macos_x86_64",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:macos",
+    ],
+)
+
+go_library(
+    name = "rules_go-issue_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/uhthomas/rules_go-issue",
+    visibility = ["//visibility:private"],
+)
+
+[
+    go_binary(
+        name = "{}pure_{}_{}".format(
+            "" if pure == "on" else "im",
+            goos,
+            goarch,
+        ),
+        embed = [":rules_go-issue_lib"],
+        goarch = goarch,
+        goos = goos,
+        pure = pure,
+        visibility = ["//visibility:public"],
+    )
+    for (goos, goarch) in [
+        ("auto", "auto"),
+        ("linux", "amd64"),
+        ("darwin", "amd64"),
+    ]
+    for pure in [
+        "on",
+        "off",
+    ]
+]
